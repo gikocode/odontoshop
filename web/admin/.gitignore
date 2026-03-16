@@ -43,7 +43,9 @@ data/
 .env.development.local
 .env.test.local
 .env.production.local
-.env*.local
+.env*.local 
+*.http
+scripts/bdd_seed.sql
 
 # --- LOGS Y DEBUG ---
 npm-debug.log*
