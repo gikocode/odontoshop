@@ -1,0 +1,112 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: odontoshop-api
+    ports:
+      - "3001:3001"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    environment:
+      # ✅ Variables AQUÍ, no en .env dentro del contenedor
+      ENCRYPTION_KEY: "ev_jwt_secret_key_minimum_32_characters_long" 
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: admin
+      DB_PASSWORD: password123
+      DB_NAME: odontoshop
+      DB_SSLMODE: disable
+      
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: redis123
+      
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: admin
+      RABBITMQ_PASSWORD: rabbitmq123
+      
+      JWT_SECRET: your-jwt-secret-key
+      
+      PORT: 3001
+      GIN_MODE: debug
+      ENV: development
+    volumes:
+      - .:/app
+      - go_modules:/go/pkg/mod
+    networks:
+      - odontoshop_network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: odontoshop-db
+    environment:
+      POSTGRES_DB: odontoshop
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+    ports:
+      - "5432:5432"
+    volumes: 
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d odontoshop"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - odontoshop_network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: odontoshop-redis
+    command: redis-server --appendonly yes --requirepass redis123
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - odontoshop_network
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: odontoshop-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: rabbitmq123
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - odontoshop_network
+    restart: unless-stopped
+
+networks:
+  odontoshop_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  go_modules:

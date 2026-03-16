@@ -1,0 +1,45 @@
+### Variables Globales
+@baseUrl = http://localhost:3001
+@authToken = {{login.response.body.token}}
+
+### 1. Probar Salud del Sistema
+GET {{baseUrl}}/health
+Accept: application/json
+
+---
+
+### 2. Login de Usuario (Obtener Token)
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "admin@odontoshop.com",
+    "password": "admin123"
+}
+
+---
+
+### 3. Probar Dashboard Protegido (Requiere Login previo)
+GET {{baseUrl}}/api/admin/dashboard
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYmJlMmVlM2MtNGI1Yy00NTViLTgxZTUtODA1OWQ2Y2YyOWZmIiwiZW1haWwiOiJhZG1pbkBvZG9udG9zaG9wLmNvbSIsInVzZXJfdHlwZSI6ImVtcGxveWVlIiwicm9sZXMiOlsiYWRtaW4iXSwiaXNzIjoib2RvbnRvc2hvcCIsImV4cCI6MTc3MzYxNzcyOSwibmJmIjoxNzczNjE2ODI5LCJpYXQiOjE3NzM2MTY4MjksImp0aSI6ImUzYzcyNjdlLWZkY2MtNDRmZC05OGZhLWMxNzg0ODU1MmFhZCJ9.2dYFHyMy_73I_BKg__tLN3CWcw7G-v2QyHWY8gps9B8
+---
+
+### 4. Crear un Producto de Odontología
+# Nota: Si aún no creas el módulo de productos, esto dará 404
+POST {{baseUrl}}/products
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+    "name": "Turbina Dental Pro",
+    "description": "Alta velocidad con luz LED",
+    "price": 250.00,
+    "stock": 15
+}
+
+---
+
+### 5. Ver Perfil de Usuario (Me)
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYmJlMmVlM2MtNGI1Yy00NTViLTgxZTUtODA1OWQ2Y2YyOWZmIiwiZW1haWwiOiJhZG1pbkBvZG9udG9zaG9wLmNvbSIsInVzZXJfdHlwZSI6ImVtcGxveWVlIiwicm9sZXMiOlsiYWRtaW4iXSwiaXNzIjoib2RvbnRvc2hvcCIsImV4cCI6MTc3MzYxNzcyOSwibmJmIjoxNzczNjE2ODI5LCJpYXQiOjE3NzM2MTY4MjksImp0aSI6ImUzYzcyNjdlLWZkY2MtNDRmZC05OGZhLWMxNzg0ODU1MmFhZCJ9.2dYFHyMy_73I_BKg__tLN3CWcw7G-v2QyHWY8gps9B8

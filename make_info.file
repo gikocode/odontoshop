@@ -1,0 +1,59 @@
+# Esenciales
+make migrate-up
+make migrate-down
+make seed
+make test
+make test-integration
+make build
+make run
+
+# Calidad de código
+make lint
+make fmt
+make vet
+
+# Docker
+make docker-up
+make docker-down
+make docker-logs
+
+# Helpers
+make db-reset      # down + up + seed
+make dev           # docker-up + migrate-up + seed + run
+```
+
+---
+
+## **Resumen de Decisiones Refinadas**
+
+| Aspecto | Decisión Original | Decisión Refinada | Razón |
+|---------|-------------------|-------------------|-------|
+| **Repositorios** | Un archivo `repositories.go` | Archivos separados `user_repository.go` | Escalabilidad |
+| **pkg/utils** | Correcto (sin importar domain) | ✅ Mantener así | Evita acoplamiento |
+| **Transacciones** | No definido | Context con TX | Pragmatismo Go |
+| **Services cruzados** | Posible problema | Services usan Repos, no Services | Evita ciclos |
+| **config/** | Correcto | ✅ Mantener separación | Buena práctica |
+| **Makefile** | "Nice to have" | **OBLIGATORIO** | Productividad |
+
+---
+
+## **Estructura Final Recomendada (sin cambios drásticos)**
+```
+internal/domain/
+├── user.go
+├── user_repository.go          # ← Cambio: separado
+├── product.go
+├── product_repository.go       # ← Cambio: separado
+├── errors.go
+└── transaction.go              # ← NUEVO: para manejar TXs
+
+internal/application/
+├── sale/
+│   ├── service.go              # ← Delgado, usa repos
+│   ├── orchestrator.go         # ← NUEVO: solo para casos complejos
+│   └── dto.go
+
+internal/infrastructure/
+├── database/
+│   ├── postgres.go
+│   └── transaction.go          # ← NUEVO: helpers de TX
